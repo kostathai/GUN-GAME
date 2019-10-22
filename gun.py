@@ -1,3 +1,4 @@
+
 from random import randrange as rnd, choice
 import tkinter as tk
 import math
@@ -15,7 +16,6 @@ canv.pack(fill=tk.BOTH, expand=1)
 class ball():
     def __init__(self, x=40, y=450):
         """ Конструктор класса ball
-
         Args:
         x - начальное положение мяча по горизонтали
         y - начальное положение мяча по вертикали
@@ -46,39 +46,44 @@ class ball():
 
     def move(self):
         """Переместить мяч по прошествии единицы времени.
-
         Метод описывает перемещение мяча за один кадр перерисовки. То есть, обновляет значения
         self.x и self.y с учетом скоростей self.vx и self.vy, силы гравитации, действующей на мяч,
         и стен по краям окна (размер окна 800х600).
         """
-        # FIXME
+        if self.x>=800-5:
+            self.vx = - self.vx
+        if self.y>=600-20 or self.y<=5:
+            self.vy = - self.vy
+
+        self.vy -= 1
+        self.vx = 0.98*self.vx
+        self.vy = 0.98*self.vy
         self.x += self.vx
         self.y -= self.vy
+        canv.delete(self.id)
+        self.id = canv.create_oval(
+                self.x - self.r,
+                self.y - self.r,
+                self.x + self.r,
+                self.y + self.r,
+                fill=self.color
+        )
 
     def hittest(self, obj):
-        """Функция проверяет сталкивалкивается ли данный обьект с целью, описываемой в обьекте obj.
 
-        Args:
-            obj: Обьект, с которым проверяется столкновение.
-        Returns:
-            Возвращает True в случае столкновения мяча и цели. В противном случае возвращает False.
-        """
-        # FIXME
+        if (self.x - obj.x) ** 2 + (self.y - obj.y) ** 2 <= (obj.r + self.r) ** 2:
+            return True
+        else:
             return False
 
 
 class gun():
-    self.f2_power = 10
-    self.f2_on = 0
-    self.an = 1
-    # self.id = canv.create_line(20,450,50,420,width=7) # FIXME: don't know how to set it...
 
     def fire2_start(self, event):
         self.f2_on = 1
 
     def fire2_end(self, event):
         """Выстрел мячом.
-
         Происходит при отпускании кнопки мыши.
         Начальные значения компонент скорости мяча vx и vy зависят от положения мыши.
         """
@@ -116,12 +121,6 @@ class gun():
 
 
 class target():
-    self.points = 0
-    self.live = 1
-    # FIXME: don't work!!! How to call this functions when object is created?
-    # self.id = canv.create_oval(0,0,0,0)
-    # self.id_points = canv.create_text(30,30,text = self.points,font = '28')
-    # self.new_target()
 
     def new_target(self):
         """ Инициализация новой цели. """
@@ -140,14 +139,24 @@ class target():
 
 
 t1 = target()
+t1.points = 0
+t1.live = 1
+t1.id = canv.create_oval(0,0,0,0)
+t1.id_points = canv.create_text(30,30,text = t1.points,font = '28')
+t1.new_target()
+
 screen1 = canv.create_text(400, 300, text='', font='28')
 g1 = gun()
 bullet = 0
 balls = []
 
+g1.f2_power = 10
+g1.f2_on = 0
+g1.an = 1
+g1.id = canv.create_line(20,450,50,420,width=7)
 
 def new_game(event=''):
-    global gun, t1, screen1, balls, bullet
+    global screen1, balls, bullet, gun, t1
     t1.new_target()
     bullet = 0
     balls = []
@@ -156,11 +165,12 @@ def new_game(event=''):
     canv.bind('<Motion>', g1.targetting)
 
     z = 0.03
-    t1.live = 1
+
+
     while t1.live or balls:
         for b in balls:
             b.move()
-            if b.hittest(t1) and t1.live:
+            if ball.hittest(b, t1) and t1.live:
                 t1.live = 0
                 t1.hit()
                 canv.bind('<Button-1>', '')
@@ -174,7 +184,8 @@ def new_game(event=''):
     canv.delete(gun)
     root.after(750, new_game)
 
-
 new_game()
+
+
 
 mainloop()
